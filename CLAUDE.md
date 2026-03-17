@@ -92,3 +92,14 @@ Sensors → Layer 1 (Ingestion :8000) → Layer 2 (Intelligence) → Layer 3 (Ac
 - **Docker Compose** (`devops/docker-compose.yml`): Redis + ingestion-api + intelligence-worker (2 replicas) + dashboard
 - **Kubernetes** (`devops/k8s/`): API deployment with HPA (3–30 replicas at 60% CPU), Redis deployment
 - Backend container uses a non-root user; configured via `MODE` env var (`INGESTION` or `WORKER`)
+
+
+## Available Skills
+
+When working on specific tasks, read the relevant skill file first:
+
+- Dashboard UI: `skills/dashboard-redesign/SKILL.md`
+- Expose predictive model: `skills/intelligence-expose/SKILL.md`
+- Alert persistence (SQLite): `skills/alert-persistence/SKILL.md`
+- Test coverage: `skills/test-coverage/SKILL.md`
+- README + repo metadata: `skills/readme-bilingual/SKILL.md`
