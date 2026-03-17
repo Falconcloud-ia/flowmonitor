@@ -1,32 +1,59 @@
 # 🔥 Flow-Monitor: Industrial IoT Monitoring System
 
-Sistema de monitoreo de sensores IoT en tiempo real con capacidades de ingesta masiva, detección de anomalías mediante IA y un dashboard reactivo de alto rendimiento.
+![Python](https://img.shields.io/badge/Python-3.10+-blue?logo=python)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green?logo=fastapi)
+![React](https://img.shields.io/badge/React-19-blue?logo=react)
+![License](https://img.shields.io/badge/license-MIT-blue)
 
-## 🏗️ Arquitectura
-El sistema consta de 3 capas principales:
-1.  **Capa 1 (Ingesta)**: Recibe datos de sensores (HTTP/JSON).
-2.  **Capa 2 (Core Inteligencia)**: Procesa datos, aplica reglas de negocio y modelos predictivos.
-3.  **Capa 3 (Dashboard)**: Visualización en tiempo real y gestión de alertas.
+Real-time IoT sensor monitoring system with high-throughput ingestion, AI-based anomaly detection, and a reactive dashboard. Built with a 3-layer microservices architecture designed to scale to >2M requests/cycle.
+
+> **GitHub Topics:** `iot` `fastapi` `python` `real-time` `anomaly-detection` `react` `kubernetes`
+>
+> **Description:** Industrial IoT real-time monitoring system — anomaly detection, predictive analytics, 3-layer pipeline. FastAPI + React + Kubernetes.
 
 ---
 
-## 🚀 Guía de Instalación Rápida
+## 🏗️ Architecture
 
-### Prerrequisitos
-*   Python 3.10+
-*   Node.js 18+
+Three-layer pipeline where data flows from sensors to the frontend in real time:
 
-### 1. Configuración del Backend (Python)
+```
+Virtual Sensors (DataPulse)
+        │  HTTP/JSON
+        ▼
+Layer 1 — Ingestion API          :8000   Plugin-based normalization
+        │
+        ▼
+Layer 2 — Intelligence Core      worker  Rules engine + predictive model
+        │
+        ▼
+Layer 3 — Action Layer API       :8001   SSE streaming + alert dispatch
+        │
+        ▼
+Frontend Dashboard               :5173   React + Vite + Tailwind
+```
+
+| Layer | Module | Responsibility |
+|---|---|---|
+| 1 | `ingestion/` | Receive, validate, normalize sensor payloads via plugin registry |
+| 2 | `intelligence_core/` | Evaluate thresholds (LOW/MEDIUM/HIGH/CRITICAL), compute failure probability |
+| 3 | `action_layer/` | Serve real-time SSE stream, dispatch omnichannel alerts |
+| UI | `dashboard/` | Visualize live sensor data and alert history |
+
+---
+
+## 🚀 Quick Start
+
+**Prerequisites:** Python 3.10+, Node.js 18+
+
+### Backend
 ```bash
-# Crear entorno virtual
 python -m venv venv
-source venv/bin/activate  # En Windows: venv\Scripts\activate
-
-# Instalar dependencias
+source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 2. Configuración del Frontend (React)
+### Frontend
 ```bash
 cd dashboard
 npm install
@@ -35,60 +62,88 @@ cd ..
 
 ---
 
-## ▶️ Ejecución del Sistema
+## ▶️ Running the System
 
-Para levantar todo el stack, necesitas 3 terminales:
+Start these in 3 separate terminals:
 
-**Terminal 1: Backend API**
+**Terminal 1 — Backend API**
 ```bash
 source venv/bin/activate
 python -m action_layer.api
-# Corre en http://localhost:8001
+# http://localhost:8001
 ```
 
-**Terminal 2: Dashboard Frontend**
+**Terminal 2 — Frontend**
 ```bash
 cd dashboard
 npm run dev
-# Corre en http://localhost:5173
+# http://localhost:5173
 ```
 
-**Terminal 3: Simulación de Sensores (Demo)**
+**Terminal 3 — Sensor Simulator**
 ```bash
 source venv/bin/activate
-python run_live_demo.py
+python sensors/datapulse_sensor.py
 ```
 
 ---
 
-## 🧪 Pruebas de Carga (Benchmark Industrial)
-Incluimos scripts para evaluar la capacidad de la infraestructura ("Stress Testing").
+## 🧪 Load Testing (Industrial Benchmark)
 
-**Prueba Estándar (Multi-nodo):**
-Simula 20 sensores enviando datos simultáneamente.
+**Standard test** — 20 sensors sending data simultaneously:
 ```bash
 python run_load_test.py --nodes 20 --duration 60
 ```
 
-**Prueba Extrema (Nuclear Mode):**
-Utiliza `aiohttp` y `uvloop` para generar >200,000 peticiones.
-⚠️ **Advertencia**: Puede saturar la red local.
+**Extreme test (Nuclear Mode)** — uses `aiohttp` + `uvloop` for >200,000 requests:
 ```bash
-# Generar 1 millón de peticiones con 500 conexiones concurrentes
+# ⚠️ May saturate local network
 python load_async_test.py --total 1000000 --concurrency 500
 ```
 
 ---
 
-## 📂 Estructura del Proyecto
-*   `/action_layer`: API Backend (FastAPI).
-*   `/ingestion`: Adaptadores de entrada de datos.
-*   `/intelligence_core`: Lógica de negocio y modelos de IA.
-*   `/dashboard`: Frontend React + Vite + Tailwind.
-*   `/sensors`: Simuladores de dispositivos IoT.
-*   `INFRASTRUCTURE_PLAN.md`: Plan de escalado a Kubernetes.
+## 📂 Project Structure
+
+| Path | Description |
+|---|---|
+| `action_layer/` | FastAPI backend — SSE, alerts, dashboard API |
+| `ingestion/` | Data ingestion adapters and plugin registry |
+| `intelligence_core/` | Business rules, AI models, threshold config |
+| `dashboard/` | React + Vite + Tailwind frontend |
+| `sensors/` | Virtual IoT device simulators |
+| `devops/` | Docker Compose + Kubernetes manifests |
 
 ---
 
-## ☁️ Despliegue (Roadmap)
-Ver `INFRASTRUCTURE_PLAN.md` para detalles sobre la arquitectura de microservicios con Docker y Kubernetes diseñada para soportar >2M req/ciclo.
+## ☁️ Deployment
+
+Docker Compose (full stack):
+```bash
+docker-compose -f devops/docker-compose.yml up
+```
+
+Kubernetes manifests in `devops/k8s/` — includes HPA configured for 3–30 API replicas at 60% CPU utilization, designed for >2M req/cycle throughput.
+
+---
+
+## Español
+
+Sistema de monitoreo de sensores IoT en tiempo real con ingesta masiva, detección de anomalías mediante IA y dashboard reactivo.
+
+**Arquitectura:** 3 capas — Ingesta (`:8000`) → Core de Inteligencia (worker) → Capa de Acción (`:8001`) → Frontend (`:5173`).
+
+**Inicio rápido:**
+```bash
+# Backend
+python -m venv venv && source venv/bin/activate && pip install -r requirements.txt
+python -m action_layer.api
+
+# Frontend
+cd dashboard && npm install && npm run dev
+
+# Sensores
+python sensors/datapulse_sensor.py
+```
+
+Para detalles completos ver las secciones en inglés arriba. Para despliegue con Docker/Kubernetes ver `devops/`.
