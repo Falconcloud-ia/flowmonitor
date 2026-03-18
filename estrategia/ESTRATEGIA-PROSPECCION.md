@@ -14,60 +14,7 @@ La landing en `fluxmonitor.falcodevs.pro` tiene un problema técnico crítico: e
 - **Social proof**: Aunque sea "En validación con plantas industriales en Chile" — algo que ancle confianza.
 - **CTA claro**: "Agenda una demo" o "Solicita piloto gratuito" con formulario simple.
 
----
-
-## 2. Mega-Prompt de Prospección Industrial
-
-### Prompt para usar con Claude (u otro LLM) para generar listas de prospectos:
-
-```
-Eres un especialista en desarrollo de negocios B2B para soluciones IoT industriales en Chile y LATAM.
-
-CONTEXTO DEL PRODUCTO:
-FluxMonitor es una plataforma SaaS de monitoreo predictivo industrial que:
-- Monitorea sensores (temperatura, vibración, presión, humedad, flujo) en tiempo real
-- Detecta anomalías y predice fallas antes de que ocurran usando ML (XGBoost + Isolation Forest)
-- Envía alertas inteligentes por WhatsApp, SMS y email con escalamiento automático
-- Se conecta vía MQTT, HTTP/JSON (y próximamente Modbus, OPC-UA)
-- Ofrece dashboard web con analytics, historial y reportes exportables
-
-PROPUESTA DE VALOR:
-"Reducir downtime no planificado mediante alertas predictivas con IA, antes de que la falla ocurra"
-
-DIFERENCIADOR vs COMPETENCIA:
-- Software-first (no vendemos hardware, nos integramos con sensores existentes)
-- SaaS accesible (no requiere consultoría de meses ni inversión CAPEX grande)
-- ML predictivo real (no solo alertas por umbral estático como el 90% del mercado)
-- Time-to-value rápido: conectar sensor → ver datos → recibir alertas en < 15 minutos
-
-SECTORES OBJETIVO en Chile:
-1. Minería: SAG mills, correas transportadoras, bombas
-2. Agroindustria: cámaras de frío, invernaderos, plantas procesadoras
-3. Manufactura: líneas de producción, compresores, motores
-4. Energía: subestaciones, paneles solares, turbinas
-5. Agua/Saneamiento: bombas, presión de red, plantas de tratamiento
-6. Retail/Logística: cadena de frío (alimentos, farmacéuticos)
-
-TAREA:
-Para cada sector, genera:
-1. Lista de 10 empresas específicas en Chile que serían prospectos ideales
-2. El cargo del decisor clave (ej: Jefe de Mantenimiento, Gerente de Planta, VP Operaciones)
-3. El "dolor" específico que FluxMonitor resuelve para esa empresa
-4. Un mensaje de primer contacto personalizado (LinkedIn InMail o email frío) de máximo 4 líneas
-5. Canales de LinkedIn o eventos industriales donde encontrar a estos decisores
-
-FORMATO: Tabla por sector con columnas [Empresa | Decisor | Dolor | Mensaje | Canal]
-
-CRITERIOS DE SELECCIÓN de prospectos:
-- Empresas medianas-grandes (>100 empleados) con operaciones continuas 24/7
-- Que tengan equipos críticos donde una falla no planificada cuesta >$50K USD
-- Que NO tengan ya sistemas SCADA sofisticados (o que los tengan pero anticuados)
-- Que estén en proceso de transformación digital o tengan mandato de eficiencia operacional
-```
-
----
-
-## 3. Competencia en Chile — Mapa Competitivo
+## 2. Competencia en Chile — Mapa Competitivo
 
 | Competidor | Modelo | Fortaleza | Debilidad vs FluxMonitor |
 |---|---|---|---|
@@ -83,7 +30,7 @@ CRITERIOS DE SELECCIÓN de prospectos:
 
 ---
 
-## 4. Estrategia CORFO — Rutas de Financiamiento
+## 3. Estrategia CORFO — Rutas de Financiamiento
 
 ### Opción A: Start-Up Chile — Ignite (Recomendada)
 - **Monto**: Hasta $30.000.000 CLP (cofinanciamiento 90%)
@@ -110,7 +57,7 @@ CRITERIOS DE SELECCIÓN de prospectos:
 
 ---
 
-## 5. Narrativa para Postulación CORFO
+## 4. Narrativa para Postulación CORFO
 
 ### Problema (por qué importa)
 En Chile, la industria minera pierde más de $1.5B USD/año por downtime no planificado. Las plantas manufactureras operan con mantenimiento reactivo — esperan a que la máquina falle. Las soluciones existentes requieren proyectos de consultoría de 6-12 meses y presupuestos de $50-100K USD, dejando fuera al 80% de las empresas medianas.
@@ -147,7 +94,7 @@ FluxMonitor es una plataforma SaaS de monitoreo predictivo industrial que usa in
 
 ---
 
-## 6. Plan de Acción Inmediato (Próximos 30 días)
+## 5. Plan de Acción Inmediato (Próximos 30 días)
 
 ### Semana 1-2: Producto mínimo vendible
 - [ ] Corregir landing: meta tags, hero con propuesta de valor, CTA de demo
