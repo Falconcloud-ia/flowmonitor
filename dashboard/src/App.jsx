@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // API Configuration
@@ -108,13 +108,13 @@ function useDashboardData() {
 // Sidebar Component
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function Sidebar({ connected }) {
+function Sidebar({ connected, activeView, setActiveView }) {
   const navItems = [
-    { icon: '📊', label: 'Dashboard', active: true },
-    { icon: '🌡️', label: 'Sensores', active: false },
-    { icon: '🔔', label: 'Alertas', active: false },
-    { icon: '📈', label: 'Analítica', active: false },
-    { icon: '⚙️', label: 'Configuración', active: false },
+    { id: 'dashboard', icon: '📊', label: 'Dashboard' },
+    { id: 'sensores', icon: '🌡️', label: 'Sensores' },
+    { id: 'alertas', icon: '🔔', label: 'Alertas' },
+    { id: 'analitica', icon: '📈', label: 'Analítica' },
+    { id: 'configuracion', icon: '⚙️', label: 'Configuración' },
   ]
 
   return (
@@ -130,10 +130,12 @@ function Sidebar({ connected }) {
       </div>
 
       <nav className="sidebar-nav">
-        {navItems.map((item, index) => (
+        {navItems.map((item) => (
           <div
-            key={index}
-            className={`nav-item ${item.active ? 'active' : ''}`}
+            key={item.id}
+            className={`nav-item ${item.id === activeView ? 'active' : ''}`}
+            onClick={() => setActiveView(item.id)}
+            style={{ cursor: 'pointer' }}
           >
             <span className="nav-icon">{item.icon}</span>
             <span>{item.label}</span>
@@ -180,47 +182,122 @@ function StatCard({ label, value, icon, riskLevel, isCritical, trend }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// Temperature Gauge Component
+// Sparkline Chart Component
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function TemperatureGauge({ value, maxValue = 120, riskLevel }) {
-  const percentage = Math.min((value / maxValue) * 100, 100)
-  const circumference = 2 * Math.PI * 80 // radius = 80
-  const strokeDashoffset = circumference - (percentage / 100) * circumference * 0.75 // 270 degrees
+function SparklineChart({ readings }) {
+  const width = 150;
+  const height = 40;
+  
+  if (!readings || readings.length === 0) return null;
+  
+  const values = readings.map(r => r.value);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = (max - min) || 1;
+  
+  const points = values.map((val, i) => {
+    const x = (i / Math.max(readings.length - 1, 1)) * width;
+    const y = height - ((val - min) / range) * height;
+    return `${x},${y}`;
+  }).join(' ');
+
+  const latestRisk = readings[readings.length - 1]?.risk_level || 'LOW';
+  const strokeColor = `var(--color-risk-${latestRisk.toLowerCase()})`;
 
   return (
-    <div className="gauge-container">
-      <div className="gauge">
-        <svg width="200" height="200" viewBox="0 0 200 200">
-          {/* Background arc */}
-          <circle
-            cx="100"
-            cy="100"
-            r="80"
-            className="gauge-bg"
-            strokeDasharray={`${circumference * 0.75} ${circumference * 0.25}`}
-            transform="rotate(135 100 100)"
-          />
-          {/* Value arc */}
-          <circle
-            cx="100"
-            cy="100"
-            r="80"
-            className={`gauge-fill ${riskLevel?.toLowerCase() || 'low'}`}
-            strokeDasharray={circumference}
-            strokeDashoffset={strokeDashoffset}
-            transform="rotate(135 100 100)"
-          />
-        </svg>
-        <div className="gauge-center">
-          <div className="gauge-value">{value?.toFixed(1) || '0.0'}</div>
-          <div className="gauge-unit">°C</div>
-        </div>
-      </div>
-      <div className="gauge-label">Temperatura Actual</div>
+    <div style={{ width: '100%', height: '40px' }}>
+      <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
+        <polyline
+          fill="none"
+          stroke={strokeColor}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          points={points}
+        />
+      </svg>
     </div>
   )
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Failure Probability Gauge Component
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function FailureProbabilityGauge({ probability, riskLevel }) {
+  const percentage = Math.min(Math.max(probability * 100, 0), 100);
+  const radius = 24;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+  const riskClass = riskLevel?.toLowerCase() || 'low';
+
+  return (
+    <div style={{ position: 'relative', width: '56px', height: '56px' }}>
+      <svg width="56" height="56" viewBox="0 0 56 56" style={{ transform: 'rotate(-90deg)' }}>
+        <circle
+          cx="28" cy="28" r="24"
+          fill="none"
+          stroke="rgba(255,255,255,0.05)"
+          strokeWidth="4"
+        />
+        <circle
+          cx="28" cy="28" r="24"
+          fill="none"
+          stroke={`var(--color-risk-${riskClass})`}
+          strokeWidth="4"
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          style={{ transition: 'stroke-dashoffset 0.5s ease-out' }}
+        />
+      </svg>
+      <div style={{
+        position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        flexDirection: 'column'
+      }}>
+        <span style={{ fontSize: '12px', fontWeight: 'bold', fontFamily: 'var(--font-mono)' }}>{percentage.toFixed(0)}%</span>
+      </div>
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Sensor Card Component
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function SensorCard({ sensorId, readings }) {
+  const latest = readings[readings.length - 1];
+  const probability = latest?.prediction?.failure_probability || 0;
+  const riskLevel = latest?.risk_level || 'LOW';
+  const isAnomaly = latest?.anomaly_detected;
+
+  return (
+    <div className={`stat-card ${isAnomaly ? 'critical' : ''}`} style={{ padding: 'var(--space-md)' }}>
+      <div className="stat-card-header" style={{ margin: 0 }}>
+        <span className="stat-card-label" style={{ fontWeight: 'bold', color: 'var(--color-text-primary)' }}>{sensorId}</span>
+        <span className={`risk-badge ${riskLevel.toLowerCase()}`}>{riskLevel}</span>
+      </div>
+      
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'var(--space-md)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <div className={`stat-card-value ${riskLevel.toLowerCase()}`} style={{ fontSize: 'var(--font-size-2xl)', marginBottom: 0 }}>
+            {latest?.value.toFixed(1)}{latest?.unit}
+          </div>
+          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+            {latest?.location || 'Planta Principal'}
+          </div>
+        </div>
+        <FailureProbabilityGauge probability={probability} riskLevel={riskLevel} />
+      </div>
+
+      <div style={{ marginTop: 'var(--space-md)' }}>
+        <SparklineChart readings={readings} />
+      </div>
+    </div>
+  )
+}
+
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Temperature Chart Component
@@ -247,7 +324,7 @@ function TemperatureChart({ readings }) {
         const height = Math.min((reading.value / maxValue) * 100, 100)
         return (
           <div
-            key={reading.id || index}
+            key={`${reading.sensor_id}-${reading.timestamp}-${index}`}
             className={`chart-bar ${reading.risk_level.toLowerCase()}`}
             style={{ height: `${height}%` }}
             title={`${reading.value.toFixed(1)}${reading.unit} - ${reading.risk_level}`}
@@ -274,8 +351,8 @@ function AlertsList({ alerts }) {
 
   return (
     <div className="alerts-list">
-      {alerts.slice().reverse().slice(0, 10).map((alert) => (
-        <div key={alert.id} className={`alert-item ${alert.risk_level.toLowerCase()}`}>
+      {alerts.slice().reverse().slice(0, 20).map((alert, index) => (
+        <div key={alert.id || `${alert.sensor_id}-${alert.timestamp}-${index}`} className={`alert-item ${alert.risk_level.toLowerCase()}`}>
           <div className="alert-header">
             <span className="alert-sensor">
               <span className="alert-sensor-icon">🔥</span>
@@ -332,7 +409,7 @@ function ReadingsTable({ readings }) {
                 'var(--color-risk-low)'
 
           return (
-            <tr key={reading.id} className={reading.risk_level.toLowerCase()}>
+            <tr key={`${reading.sensor_id}-${reading.timestamp}`} className={reading.risk_level.toLowerCase()}>
               <td>
                 <span style={{ fontWeight: 600 }}>{reading.sensor_id}</span>
               </td>
@@ -377,11 +454,53 @@ function ReadingsTable({ readings }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// Sensor Grid Component
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function SensorGrid({ readings }) {
+  const grouped = useMemo(() => {
+    const map = new Map();
+    readings.forEach(r => {
+      if (!map.has(r.sensor_id)) map.set(r.sensor_id, []);
+      map.get(r.sensor_id).push(r);
+    });
+    return Array.from(map.entries()).map(([id, arr]) => ({
+      id,
+      data: arr.slice(-60) // Keep last 60 for sparklines
+    }));
+  }, [readings]);
+
+  if (grouped.length === 0) {
+    return (
+      <div className="empty-state">
+        <div className="empty-state-icon">📊</div>
+        <p>Esperando datos del sensor...</p>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+      gap: 'var(--space-md)',
+      width: '100%'
+    }}>
+      {grouped.map(({ id, data }) => (
+        <SensorCard key={id} sensorId={id} readings={data} />
+      ))}
+    </div>
+  )
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // Main App Component
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function App() {
   const { data, connected, loading } = useDashboardData()
+  const [activeView, setActiveView] = useState('dashboard')
   const hasCritical = data.stats.readings_by_risk.CRITICAL > 0
 
   // Get current temperature from latest reading
@@ -403,15 +522,15 @@ function App() {
   return (
     <div className="dashboard">
       {/* Sidebar */}
-      <Sidebar connected={connected} />
+      <Sidebar connected={connected} activeView={activeView} setActiveView={setActiveView} />
 
       {/* Main Content */}
       <div className="main-content">
         {/* Header */}
         <header className="dashboard-header">
           <div className="header-title">
-            <h2>Panel de Monitoreo</h2>
-            <span>Monitoreo en tiempo real de sensores industriales</span>
+            <h2>{activeView === 'dashboard' ? 'Panel de Monitoreo' : activeView === 'sensores' ? 'Estado de Sensores' : 'Panel de Monitoreo'}</h2>
+            <span>{activeView === 'sensores' ? 'Monitoreo detallado de cada sensor operando en planta' : 'Monitoreo en tiempo real de sensores industriales'}</span>
           </div>
           <div className="header-actions">
             <div className="header-stat">
@@ -425,75 +544,87 @@ function App() {
           </div>
         </header>
 
-        {/* Main Grid */}
-        <main className="dashboard-main">
-          {/* Stats Cards Row */}
-          <div className="stats-grid">
-            <StatCard
-              label="Total Lecturas"
-              value={data.stats.total_readings}
-              icon="📊"
-            />
-            <StatCard
-              label="Nivel Bajo"
-              value={data.stats.readings_by_risk.LOW}
-              icon="🟢"
-              riskLevel="low"
-            />
-            <StatCard
-              label="Nivel Alto"
-              value={data.stats.readings_by_risk.HIGH}
-              icon="🟠"
-              riskLevel="high"
-            />
-            <StatCard
-              label="Críticos"
-              value={data.stats.readings_by_risk.CRITICAL}
-              icon="🔴"
-              riskLevel="critical"
-              isCritical={hasCritical}
-            />
-          </div>
+        {/* Main Grid / Dynamic View */}
+        {activeView === 'dashboard' && (
+          <main className="dashboard-main">
+            {/* Stats Cards Row */}
+            <div className="stats-grid">
+              <StatCard
+                label="Total Lecturas"
+                value={data.stats.total_readings}
+                icon="📊"
+              />
+              <StatCard
+                label="Nivel Bajo"
+                value={data.stats.readings_by_risk.LOW}
+                icon="🟢"
+                riskLevel="low"
+              />
+              <StatCard
+                label="Nivel Alto"
+                value={data.stats.readings_by_risk.HIGH}
+                icon="🟠"
+                riskLevel="high"
+              />
+              <StatCard
+                label="Críticos"
+                value={data.stats.readings_by_risk.CRITICAL}
+                icon="🔴"
+                riskLevel="critical"
+                isCritical={hasCritical}
+              />
+            </div>
 
-          {/* Chart Section */}
-          <section className="chart-section">
-            <div className="section-header">
-              <h2 className="section-title">
-                <span className="section-title-icon">📈</span>
-                <span>Temperatura en Tiempo Real</span>
-              </h2>
-              <div className="section-actions">
-                <button className="btn-icon" title="Actualizar">🔄</button>
-                <button className="btn-icon" title="Expandir">⛶</button>
+            {/* Chart Section */}
+            <section className="chart-section">
+              <div className="section-header">
+                <h2 className="section-title">
+                  <span className="section-title-icon">📈</span>
+                  <span>Temperatura en Tiempo Real</span>
+                </h2>
+                <div className="section-actions">
+                  <button className="btn-icon" title="Actualizar">🔄</button>
+                  <button className="btn-icon" title="Expandir">⛶</button>
+                </div>
               </div>
-            </div>
-            <div className="chart-container">
-              <TemperatureChart readings={data.readings} />
-            </div>
-          </section>
+              <div className="chart-container">
+                <TemperatureChart readings={data.readings} />
+              </div>
+            </section>
 
-          {/* Alerts Panel */}
-          <section className="alerts-section">
-            <div className="section-header">
-              <h2 className="section-title">
-                <span className="section-title-icon">🔔</span>
-                <span>Alertas ({data.stats.alerts_sent})</span>
-              </h2>
-            </div>
-            <AlertsList alerts={data.alerts} />
-          </section>
+            {/* Alerts Panel */}
+            <section className="alerts-section">
+              <div className="section-header">
+                <h2 className="section-title">
+                  <span className="section-title-icon">🔔</span>
+                  <span>Alertas ({data.stats.alerts_sent})</span>
+                </h2>
+              </div>
+              <AlertsList alerts={data.alerts} />
+            </section>
 
-          {/* Readings Table */}
-          <section className="readings-section">
-            <div className="section-header">
-              <h2 className="section-title">
-                <span className="section-title-icon">📋</span>
-                <span>Últimas Lecturas</span>
-              </h2>
+            {/* Readings Table */}
+            <section className="readings-section" style={{ gridColumn: '1 / -1' }}>
+              <div className="section-header">
+                <h2 className="section-title">
+                  <span className="section-title-icon">📋</span>
+                  <span>Últimas Lecturas</span>
+                </h2>
+              </div>
+              <ReadingsTable readings={data.readings} />
+            </section>
+          </main>
+        )}
+
+        {/* SENSORES VIEW */}
+        {activeView === 'sensores' && (
+          <main style={{ padding: 'var(--space-xl)', flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <div style={{ background: 'var(--color-bg-card)', padding: 'var(--space-xl)', borderRadius: 'var(--radius-xl)', border: '1px solid var(--color-border)', flex: 1 }}>
+               <SensorGrid readings={data.readings} />
             </div>
-            <ReadingsTable readings={data.readings} />
-          </section>
-        </main>
+          </main>
+        )}
+        
       </div>
     </div>
   )
