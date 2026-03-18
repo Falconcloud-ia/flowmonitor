@@ -1,0 +1,46 @@
+Pasos para levantar Flow-Monitor localmente
+===========================================
+
+Para ejecutar todo el proyecto localmente con datos simulados, necesitas abrir 3 terminales distintas.
+
+---
+
+TERMINAL 1: Iniciar la API (Backend - Capa 3)
+-------------------------------------------
+1. Ubícate en la raíz del proyecto (flow-monitor/).
+2. Si es la primera vez o tienes problemas con el entorno virtual, recréalo e instala las dependencias:
+   rm -rf venv
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+3. Si el entorno ya está creado, solo actívalo:
+   source venv/bin/activate
+4. Inicia la API:
+   python -m action_layer.api
+
+* La API debería correr en: http://localhost:8001
+* Documentación interactiva (Swagger): http://localhost:8001/docs
+
+
+TERMINAL 2: Iniciar el Dashboard (Frontend React)
+-------------------------------------------------
+1. Ubícate en la raíz del proyecto y entra a la carpeta del dashboard:
+   cd dashboard/
+2. Instala las dependencias de Node (solo la primera vez o si hubo cambios en package.json):
+   npm install
+3. Inicia el servidor de desarrollo de Vite:
+   npm run dev
+
+* El dashboard debería estar disponible en: http://localhost:5173 (o 5174 si el 5173 está ocupado)
+
+
+TERMINAL 3: Iniciar la Simulación de Sensores y Pipeline
+--------------------------------------------------------
+1. Ubícate en la raíz del proyecto (flow-monitor/).
+2. Activa el entorno virtual:
+   source venv/bin/activate
+3. Ejecuta el pipeline puente que conecta sensores -> núcleo de inteligencia -> capa de acción:
+   python run_pipeline.py
+
+* (Opcional) Si solo quieres correr el simulador directo de sensores:
+  python sensors/datapulse_sensor.py

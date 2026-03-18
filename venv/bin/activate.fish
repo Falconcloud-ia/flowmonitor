@@ -33,7 +33,7 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV /home/falcon/Documentos/flow-monitor/venv
+set -gx VIRTUAL_ENV /home/falcon/Documentos/falcodevs/flow-monitor/venv
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/"bin $PATH
